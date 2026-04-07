@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+{% block title %}Profile Intelligence{% endblock %}
+
+{% block content %}
+<div class="pi-page">
+
+  <!-- Page Header -->
+  <div class="pi-header">
+    <div class="pi-header-inner">
+      <div class="pi-header-badge">
+        <span class="badge-pulse"></span>
+        Profile Intelligence Engine — Powered by BridgeFi AI
+      </div>
+      <h1 class="pi-title">Know Your Standing<br><span class="gradient-text-cyan">Before You Apply</span></h1>
+      <p class="pi-subtitle">Connect your developer profiles to get a real-time readiness score, gap detection, and a personalized action roadmap.</p>
+    </div>
+    <!-- Animated background orbs -->
+    <div class="pi-bg-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+  </div>
+
+  <div class="pi-body container">
+
+    <!-- Top 2-col layout -->
+    <div class="pi-grid">
+
+      <!-- LEFT: Profile Intelligence Engine -->
+      <div class="pi-panel pi-panel-left">
+        <div class="pi-panel-header pi-panel-header-purple">
+          <i class="fas fa-brain"></i>
+          Profile Intelligence Engine
+        </div>
+
+        <div class="pi-profiles-grid">
+          <!-- GitHub -->
+          <div class="profile-connect-card" id="card-github">
+            <div class="pc-top">
+              <div class="pc-icon pc-icon-github">
+                <i class="fab fa-github"></i>
+              </div>
+              <div class="pc-info">
+                <h4>GitHub</h4>
+                <span class="pc-meta">Commits · PRs · Repos</span>
+              </div>
+              <div class="pc-status" id="status-github">
+                <div class="status-dot status-dot-idle"></div>
+              </div>
+            </div>
+            <div class="pc-input-row">
+              <input type="text" id="github-handle" class="pc-input" placeholder="your-github-username" value=""/>
+              <button class="pc-btn" onclick="connectProfile('github')">Connect</button>
+            </div>
+          </div>
+
+          <!-- LinkedIn -->
+          <div class="profile-connect-card" id="card-linkedin">
+            <div class="pc-top">
+              <div class="pc-icon pc-icon-linkedin">
+                <i class="fab fa-linkedin-in"></i>
+              </div>
+              <div class="pc-info">
+                <h4>LinkedIn</h4>
+                <span class="pc-meta">Connections · Skills</span>
+              </div>
+              <div class="pc-status" id="status-linkedin">
+                <div class="status-dot status-dot-idle"></div>
+              </div>
+            </div>
+            <div class="pc-input-row">
+              <input type="text" id="linkedin-handle" class="pc-input" placeholder="linkedin.com/in/yourprofile" value=""/>
+              <button class="pc-btn" onclick="connectProfile('linkedin')">Connect</button>
+            </div>
+          </div>
+
+          <!-- LeetCode -->
+          <div class="profile-connect-card" id="card-leetcode">
+            <div class="pc-top">
+              <div class="pc-icon pc-icon-leetcode">
+                <i class="fas fa-code"></i>
+              </div>
+              <div class="pc-info">
+                <h4>LeetCode</h4>
+                <span class="pc-meta">Ratings · Contests</span>
+              </div>
+              <div class="pc-status" id="status-leetcode">
+                <div class="status-dot status-dot-idle"></div>
+              </div>
+            </div>
+            <div class="pc-input-row">
+              <input type="text" id="leetcode-handle" class="pc-input" placeholder="leetcode-username" value=""/>
+              <button class="pc-btn" onclick="connectProfile('leetcode')">Connect</button>
+            </div>
+          </div>
+
+          <!-- Codeforces -->
+          <div class="profile-connect-card" id="card-codeforces">
+            <div class="pc-top">
+              <div class="pc-icon pc-icon-cf">
+                <i class="fas fa-trophy"></i>
+              </div>
+              <div class="pc-info">
+                <h4>Codeforces</h4>
+                <span class="pc-meta">Rank · Problems</span>
+              </div>
+              <div class="pc-status" id="status-codeforces">
+                <div class="status-dot status-dot-idle"></div>
+              </div>
+            </div>
+            <div class="pc-input-row">
+              <input type="text" id="codeforces-handle" class="pc-input" placeholder="cf-handle" value=""/>
+              <button class="pc-btn" onclick="connectProfile('codeforces')">Connect</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Readiness Score -->
+        <div class="readiness-card">
+          <div class="readiness-left">
+            <div class="readiness-ring-wrap">
+              <svg class="readiness-ring" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="url(#ringGrad)" stroke-width="10"
+                  stroke-dasharray="314"
+                  stroke-dashoffset="87"
+                  stroke-linecap="round"
+                  transform="rotate(-90 60 60)"
+                  id="readiness-arc"/>
+                <defs>
+                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#6366f1"/>
+                    <stop offset="100%" stop-color="#06b6d4"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="readiness-pct" id="readiness-pct">72%</div>
+            </div>
+            <span class="readiness-label">JOB READINESS<br>SCORE</span>
+          </div>
+          <div class="readiness-right">
+            <h4>Profile Readiness Score</h4>
+            <div class="readiness-bars">
+              <div class="rb-item">
+                <div class="rb-label-row">
+                  <span>GitHub Activity</span>
+                  <span class="rb-pct rb-pct-blue" id="github-score">80%</span>
+                </div>
+                <div class="rb-track">
+                  <div class="rb-fill rb-fill-blue" id="github-bar" style="width:80%"></div>
+                </div>
+              </div>
+              <div class="rb-item">
+                <div class="rb-label-row">
+                  <span>LinkedIn Score</span>
+                  <span class="rb-pct rb-pct-teal" id="linkedin-score">65%</span>
+                </div>
+                <div class="rb-track">
+                  <div class="rb-fill rb-fill-teal" id="linkedin-bar" style="width:65%"></div>
+                </div>
+              </div>
+              <div class="rb-item">
+                <div class="rb-label-row">
+                  <span>LeetCode Rank</span>
+                  <span class="rb-pct rb-pct-orange" id="leetcode-score">70%</span>
+                </div>
+                <div class="rb-track">
+                  <div class="rb-fill rb-fill-orange" id="leetcode-bar" style="width:70%"></div>
+                </div>
+              </div>
+              <div class="rb-item">
+                <div class="rb-label-row">
+                  <span>Codeforces</span>
+                  <span class="rb-pct rb-pct-pink" id="cf-score">55%</span>
+                </div>
+                <div class="rb-track">
+                  <div class="rb-fill rb-fill-pink" id="cf-bar" style="width:55%"></div>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm mt-2 w100" onclick="runAnalysis()" id="analyze-btn">
+              <i class="fas fa-bolt"></i> Run Full Analysis
+            </button>
+          </div>
+        </div>
+
+      </div><!-- end left panel -->
+
+      <!-- RIGHT: Gap Analysis + Action Roadmap -->
+      <div class="pi-panel pi-panel-right">
+        <div class="pi-panel-header pi-panel-header-orange">
+          <i class="fas fa-map-signs"></i>
+          Gap Analysis + Action Roadmap
+        </div>
+
+        <!-- GitHub Gaps -->
+        <div class="gap-section gap-section-red" id="github-gaps">
+          <div class="gap-section-title">
+            <i class="fab fa-github"></i>
+            GitHub Gaps Detected
+          </div>
+          <ul class="gap-list" id="github-gap-list">
+            <li><i class="fas fa-exclamation-triangle"></i> No README on 6 pinned repos</li>
+            <li><i class="fas fa-exclamation-triangle"></i> Inactive for 47 days — low commit streak</li>
+            <li><i class="fas fa-exclamation-triangle"></i> Missing: system design or ML project</li>
+          </ul>
+        </div>
+
+        <!-- LinkedIn Gaps -->
+        <div class="gap-section gap-section-orange" id="linkedin-gaps">
+          <div class="gap-section-title">
+            <i class="fab fa-linkedin"></i>
+            LinkedIn Gaps Detected
+          </div>
+          <ul class="gap-list" id="linkedin-gap-list">
+            <li><i class="fas fa-exclamation-triangle"></i> No 'Open to Work' signal set</li>
+            <li><i class="fas fa-exclamation-triangle"></i> Skills missing: FastAPI, LangChain</li>
+            <li><i class="fas fa-exclamation-triangle"></i> &lt; 500 connections — expand network</li>
+          </ul>
+        </div>
+
+        <!-- Recommended Actions -->
+        <div class="gap-section gap-section-green" id="recommended-actions">
+          <div class="gap-section-title">
+            <i class="fas fa-check-circle"></i>
+            Recommended Actions
+          </div>
+          <ul class="gap-list gap-list-actions" id="actions-list">
+            <li><i class="fas fa-circle action-dot"></i> Attempt LeetCode Weekly Contest #391 (rank boost)</li>
+            <li><i class="fas fa-circle action-dot"></i> Add 1 live project with CI/CD to GitHub this week</li>
+            <li><i class="fas fa-circle action-dot"></i> Update LinkedIn headline with target role keywords</li>
+          </ul>
+        </div>
+
+        <!-- AI Insight Banner -->
+        <div class="ai-insight-banner">
+          <div class="aib-icon"><i class="fas fa-lightbulb"></i></div>
+          <div class="aib-text">
+            <strong>BridgeFi AI says:</strong>
+            <span id="ai-insight-text">"Know your standing. Fix what's missing. Apply with confidence — not guesswork."</span>
+          </div>
+          <button class="aib-refresh" onclick="refreshInsight()" title="New insight"><i class="fas fa-sync-alt"></i></button>
+        </div>
+
+      </div><!-- end right panel -->
+
+    </div><!-- end pi-grid -->
+
+    <!-- Bottom: Detailed Profile Cards Row (shown after analysis) -->
+    <div class="pi-detail-row" id="pi-detail-row">
+      <h3 class="pi-detail-title"><i class="fas fa-chart-bar"></i> Detailed Profile Breakdown</h3>
+      <div class="pi-detail-grid">
+
+        <div class="pi-detail-card">
+          <div class="pdc-header pdc-github">
+            <i class="fab fa-github"></i>
+            <span>GitHub Profile</span>
+            <span class="pdc-score" id="pdc-github-score">80</span>
+          </div>
+          <div class="pdc-metrics">
+            <div class="pdc-metric"><span>Commit Streak</span><strong>12 days</strong></div>
+            <div class="pdc-metric"><span>Public Repos</span><strong>18</strong></div>
+            <div class="pdc-metric"><span>Stars Earned</span><strong>94</strong></div>
+            <div class="pdc-metric"><span>PRs Merged</span><strong>37</strong></div>
+          </div>
+        </div>
+
+        <div class="pi-detail-card">
+          <div class="pdc-header pdc-linkedin">
+            <i class="fab fa-linkedin-in"></i>
+            <span>LinkedIn Profile</span>
+            <span class="pdc-score" id="pdc-linkedin-score">65</span>
+          </div>
+          <div class="pdc-metrics">
+            <div class="pdc-metric"><span>Connections</span><strong>342</strong></div>
+            <div class="pdc-metric"><span>Skills Listed</span><strong>14</strong></div>
+            <div class="pdc-metric"><span>Endorsements</span><strong>28</strong></div>
+            <div class="pdc-metric"><span>Recommendations</span><strong>2</strong></div>
+          </div>
+        </div>
+
+        <div class="pi-detail-card">
+          <div class="pdc-header pdc-leetcode">
+            <i class="fas fa-code"></i>
+            <span>LeetCode Stats</span>
+            <span class="pdc-score" id="pdc-leetcode-score">70</span>
+          </div>
+          <div class="pdc-metrics">
+            <div class="pdc-metric"><span>Problems Solved</span><strong>287</strong></div>
+            <div class="pdc-metric"><span>Contest Rating</span><strong>1,642</strong></div>
+            <div class="pdc-metric"><span>Top %</span><strong>22%</strong></div>
+            <div class="pdc-metric"><span>Streak</span><strong>8 days</strong></div>
+          </div>
+        </div>
+
+        <div class="pi-detail-card">
+          <div class="pdc-header pdc-cf">
+            <i class="fas fa-trophy"></i>
+            <span>Codeforces</span>
+            <span class="pdc-score" id="pdc-cf-score">55</span>
+          </div>
+          <div class="pdc-metrics">
+            <div class="pdc-metric"><span>Rating</span><strong>1,480</strong></div>
+            <div class="pdc-metric"><span>Rank</span><strong>Specialist</strong></div>
+            <div class="pdc-metric"><span>Problems</span><strong>156</strong></div>
+            <div class="pdc-metric"><span>Contests</span><strong>11</strong></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Quote footer -->
+    <div class="pi-quote">
+      <i class="fas fa-quote-left"></i>
+      <em>"Know your standing. Fix what's missing. Apply with confidence — not guesswork."</em>
+      <i class="fas fa-quote-right"></i>
+    </div>
+
+  </div><!-- end container -->
+</div>
+
+<script>
+const insights = [
+  '"Know your standing. Fix what\'s missing. Apply with confidence — not guesswork."',
+  '"Your GitHub streak is the new resume. Recruiters look at it first."',
+  '"Every gap is a roadmap, not a rejection. BridgeFi shows you the path."',
+  '"Candidates who fix their top 2 profile gaps get 3× more callbacks."',
+  '"LinkedIn headline optimization alone improves visibility by 40%."',
+];
+let insightIdx = 0;
+
+function refreshInsight() {
+  insightIdx = (insightIdx + 1) % insights.length;
+  const el = document.getElementById('ai-insight-text');
+  el.style.opacity = 0;
+  setTimeout(() => {
+    el.textContent = insights[insightIdx];
+    el.style.opacity = 1;
+  }, 200);
+}
+
+function connectProfile(platform) {
+  const input = document.getElementById(platform + '-handle') || document.getElementById(platform.replace('codeforces','codeforces') + '-handle');
+  const dot = document.querySelector('#status-' + platform + ' .status-dot');
+  const card = document.getElementById('card-' + platform);
+
+  dot.className = 'status-dot status-dot-loading';
+  setTimeout(() => {
+    dot.className = 'status-dot status-dot-connected';
+    card.classList.add('card-connected');
+    showToast(platform.charAt(0).toUpperCase() + platform.slice(1) + ' connected!');
+  }, 1200);
+}
+
+function runAnalysis() {
+  const btn = document.getElementById('analyze-btn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+  btn.disabled = true;
+
+  // Animate the readiness ring
+  setTimeout(() => {
+    animateRing(72);
+    document.getElementById('pi-detail-row').style.display = 'block';
+    document.getElementById('pi-detail-row').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    btn.innerHTML = '<i class="fas fa-check"></i> Analysis Complete';
+    btn.disabled = false;
+    showToast('Profile analysis complete!');
+  }, 2000);
+}
+
+function animateRing(pct) {
+  const arc = document.getElementById('readiness-arc');
+  const label = document.getElementById('readiness-pct');
+  const circumference = 314;
+  const target = circumference - (pct / 100) * circumference;
+  arc.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)';
+  arc.style.strokeDashoffset = target;
+  // Count up
+  let current = 0;
+  const step = pct / 50;
+  const timer = setInterval(() => {
+    current = Math.min(current + step, pct);
+    label.textContent = Math.round(current) + '%';
+    if (current >= pct) clearInterval(timer);
+  }, 24);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pi-detail-row').style.display = 'none';
+  // Subtle initial animation on ring
+  setTimeout(() => animateRing(72), 400);
+});
+</script>
+{% endblock %}

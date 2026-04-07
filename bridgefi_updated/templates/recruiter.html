@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+{% block title %}Recruiter Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar sidebar-pink">
+    <div class="sidebar-header">
+      <h3><i class="fas fa-users"></i> Recruiter View</h3>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="sidebar-link active" onclick="showSection('overview', this)">
+        <i class="fas fa-home"></i> Overview
+      </a>
+      <a href="#" class="sidebar-link" onclick="showSection('pipeline', this)">
+        <i class="fas fa-filter"></i> Candidate Pipeline
+      </a>
+      <a href="#" class="sidebar-link" onclick="showSection('ghosting', this)">
+        <i class="fas fa-chart-bar"></i> Ghosting Dashboard
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-danger btn-sm w100" onclick="bulkFollowup()">
+        <i class="fas fa-paper-plane"></i> One-Click Bulk Follow-up
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Panel -->
+  <div class="dashboard-main">
+
+    <!-- Overview Section -->
+    <section id="section-overview" class="dash-section">
+      <div class="section-topbar">
+        <div>
+          <h2>Recruiter Dashboard</h2>
+          <p class="text-muted">Verified signals. Zero guesswork.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addCandModal')">
+          <i class="fas fa-plus"></i> Add Candidate
+        </button>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-icon"><i class="fas fa-users"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ total }}</span>
+            <span class="kpi-label">Total Candidates</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-icon"><i class="fas fa-star"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ shortlisted }}</span>
+            <span class="kpi-label">Shortlisted</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-icon"><i class="fas fa-comments"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ interviews }}</span>
+            <span class="kpi-label">Interviews</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ hired }}</span>
+            <span class="kpi-label">Hired</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-red">
+          <div class="kpi-icon"><i class="fas fa-bell"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ pending_response }}</span>
+            <span class="kpi-label">Awaiting Response</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <h4>Candidate Pipeline Status</h4>
+          <canvas id="pipelineChart" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Ghosting Risk vs Industry Benchmark</h4>
+          <canvas id="ghostingChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Speed Metrics -->
+      <div class="metrics-row">
+        <div class="metric-item">
+          <div class="metric-icon green"><i class="fas fa-tachometer-alt"></i></div>
+          <div>
+            <strong>30 sec</strong>
+            <span>per candidate (vs 5 min)</span>
+          </div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-icon blue"><i class="fas fa-bolt"></i></div>
+          <div>
+            <strong>10 sec</strong>
+            <span>bulk follow-up (vs 2 hrs)</span>
+          </div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-icon purple"><i class="fas fa-percentage"></i></div>
+          <div>
+            <strong>{{ avg_skill }}%</strong>
+            <span>avg skill score</span>
+          </div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-icon orange"><i class="fas fa-shield-alt"></i></div>
+          <div>
+            <strong>80%</strong>
+            <span>time saved on screening</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Candidate Pipeline Section -->
+    <section id="section-pipeline" class="dash-section hidden">
+      <div class="section-topbar">
+        <div>
+          <h2>Candidate Pipeline</h2>
+          <p class="text-muted">Verified artifacts. Honest skill scores.</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-danger" onclick="bulkFollowup()">
+            <i class="fas fa-paper-plane"></i> Bulk Follow-up ({{ pending_response }} pending)
+          </button>
+          <button class="btn btn-primary" onclick="openModal('addCandModal')">
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="candStatusFilter" onchange="filterCandidates()" class="filter-select">
+          <option value="">All Status</option>
+          <option value="Under Review">Under Review</option>
+          <option value="Shortlisted">Shortlisted</option>
+          <option value="Interview">Interview</option>
+          <option value="Hired">Hired</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <input type="text" id="candSearch" placeholder="Search name or role..." onkeyup="filterCandidates()" class="filter-input"/>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table" id="candTable">
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Skill Score</th>
+              <th>Honesty Score</th>
+              <th>Applied</th>
+              <th>Response</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="candTableBody">
+            {% for c in candidates %}
+            <tr data-status="{{ c.status }}" data-name="{{ c.name }}" data-role="{{ c.role }}" data-id="{{ c.id }}">
+              <td>
+                <div class="candidate-cell">
+                  <div class="avatar">{{ c.name[0] }}</div>
+                  <div>
+                    <strong>{{ c.name }}</strong>
+                    <small>{{ c.email }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>{{ c.role }}</td>
+              <td><span class="status-badge status-{{ c.status.lower().replace(' ', '-') }}">{{ c.status }}</span></td>
+              <td>
+                <div class="score-wrap">
+                  <div class="score-bar" style="width:{{ (c.skill_score * 100)|int }}%; background:{{ '#10b981' if c.skill_score > 0.7 else '#f59e0b' if c.skill_score > 0.5 else '#ef4444' }}"></div>
+                  <span>{{ (c.skill_score * 100)|int }}%</span>
+                </div>
+              </td>
+              <td>
+                <div class="score-wrap">
+                  <div class="score-bar" style="width:{{ (c.honesty_score * 100)|int }}%; background:#6366f1"></div>
+                  <span>{{ (c.honesty_score * 100)|int }}%</span>
+                </div>
+              </td>
+              <td>{{ c.applied_date.strftime('%b %d') }}</td>
+              <td>
+                {% if c.response_sent %}
+                  <span class="badge-sent"><i class="fas fa-check"></i> Sent</span>
+                {% else %}
+                  <span class="badge-pending"><i class="fas fa-clock"></i> Pending</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="action-group">
+                  <button class="btn-icon btn-edit" onclick="openEditCand({{ c.id }}, '{{ c.name }}', '{{ c.email }}', '{{ c.role }}', '{{ c.status }}', {{ (c.skill_score*100)|int }}, {{ (c.honesty_score*100)|int }}, '{{ c.notes }}')" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-delete" onclick="deleteCand({{ c.id }})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Ghosting Dashboard Section -->
+    <section id="section-ghosting" class="dash-section hidden">
+      <div class="section-topbar">
+        <div>
+          <h2>Ghosting Risk Dashboard</h2>
+          <p class="text-muted">Protect your employer brand. Track response metrics.</p>
+        </div>
+      </div>
+
+      <div class="ghosting-dash-grid">
+        <div class="gd-stat gd-red">
+          <i class="fas fa-ghost fa-2x"></i>
+          <div class="gd-body">
+            <strong>Industry Avg Ghosting</strong>
+            <span class="gd-num">73%</span>
+            <small>of applicants never hear back</small>
+          </div>
+        </div>
+        <div class="gd-stat gd-green">
+          <i class="fas fa-shield-alt fa-2x"></i>
+          <div class="gd-body">
+            <strong>Your Team's Ghosting Rate</strong>
+            <span class="gd-num">{{ ((pending_response / total) * 100)|int if total else 0 }}%</span>
+            <small>{{ pending_response }} pending responses</small>
+          </div>
+        </div>
+        <div class="gd-stat gd-blue">
+          <i class="fas fa-bolt fa-2x"></i>
+          <div class="gd-body">
+            <strong>Responses Sent</strong>
+            <span class="gd-num">{{ total - pending_response }}</span>
+            <small>out of {{ total }} candidates</small>
+          </div>
+        </div>
+        <div class="gd-stat gd-purple">
+          <i class="fas fa-trophy fa-2x"></i>
+          <div class="gd-body">
+            <strong>Conversion Rate</strong>
+            <span class="gd-num">{{ ((hired / total) * 100)|int if total else 0 }}%</span>
+            <small>applicant → hire</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <h4>Ghosting Rate Trend vs Industry Benchmark</h4>
+        <canvas id="benchmarkChart" height="120"></canvas>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header-row">
+          <h4>Action Center</h4>
+        </div>
+        <p>Send a professional non-committal status update to all {{ pending_response }} pending candidates in one click.</p>
+        <div class="action-preview">
+          <pre class="email-pre small-pre">Subject: Update on Your Application Status
+
+Hi [Candidate Name],
+
+Thank you for applying for the [Role] position. We wanted to reach out and let you
+know that your application is still under review. We appreciate your patience and will
+be in touch with a final decision soon.
+
+Best regards,
+The Hiring Team</pre>
+        </div>
+        <button class="btn btn-danger mt-2" onclick="bulkFollowup()">
+          <i class="fas fa-paper-plane"></i> Send to All {{ pending_response }} Pending Candidates (10 seconds)
+        </button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Add Candidate Modal -->
+<div id="addCandModal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('addCandModal')"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Add Candidate</h3>
+      <button class="modal-close" onclick="closeModal('addCandModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="add-cand-name" class="form-input" placeholder="Alice Johnson" />
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="add-cand-email" class="form-input" placeholder="alice@example.com" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Role</label>
+          <input type="text" id="add-cand-role" class="form-input" placeholder="Frontend Developer" />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="add-cand-status" class="form-input">
+            <option>Under Review</option><option>Shortlisted</option>
+            <option>Interview</option><option>Hired</option><option>Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Skill Score (0-100)</label>
+          <input type="number" id="add-cand-skill" class="form-input" min="0" max="100" value="75" />
+        </div>
+        <div class="form-group">
+          <label>Honesty Score (0-100)</label>
+          <input type="number" id="add-cand-honesty" class="form-input" min="0" max="100" value="80" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="add-cand-notes" class="form-input" rows="3" placeholder="Strong artifact. Missing Kubernetes..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addCandModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddCand()">Add Candidate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Candidate Modal -->
+<div id="editCandModal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('editCandModal')"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Edit Candidate</h3>
+      <button class="modal-close" onclick="closeModal('editCandModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-cand-id"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="edit-cand-name" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="edit-cand-email" class="form-input"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Role</label>
+          <input type="text" id="edit-cand-role" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="edit-cand-status" class="form-input">
+            <option>Under Review</option><option>Shortlisted</option>
+            <option>Interview</option><option>Hired</option><option>Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Skill Score</label>
+          <input type="number" id="edit-cand-skill" class="form-input" min="0" max="100"/>
+        </div>
+        <div class="form-group">
+          <label>Honesty Score</label>
+          <input type="number" id="edit-cand-honesty" class="form-input" min="0" max="100"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="edit-cand-notes" class="form-input" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('editCandModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditCand()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const statusData = {{ status_counts | safe }};
+
+// Pipeline Chart
+new Chart(document.getElementById('pipelineChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: Object.keys(statusData),
+    datasets: [{ data: Object.values(statusData), backgroundColor: ['#94a3b8','#6366f1','#f59e0b','#10b981','#ef4444'], borderRadius: 6 }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+// Ghosting Comparison Chart
+new Chart(document.getElementById('ghostingChart').getContext('2d'), {
+  type: 'radar',
+  data: {
+    labels: ['Response Rate','Brand Score','Candidate Trust','Speed','Transparency'],
+    datasets: [
+      { label: 'Your Team', data: [82,75,88,90,70], backgroundColor: '#6366f122', borderColor: '#6366f1', pointBackgroundColor: '#6366f1' },
+      { label: 'Industry Avg', data: [27,40,35,30,25], backgroundColor: '#ef444422', borderColor: '#ef4444', pointBackgroundColor: '#ef4444' },
+    ]
+  },
+  options: { responsive: true, scales: { r: { beginAtZero: true, max: 100 } } }
+});
+
+// Benchmark Chart (line)
+const benchCtx = document.getElementById('benchmarkChart');
+if (benchCtx) {
+  new Chart(benchCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: ['Jan','Feb','Mar','Apr','May','Jun'],
+      datasets: [
+        { label: 'Your Ghosting Rate %', data: [60,52,45,38,30,{{ ((pending_response / total) * 100)|int if total else 25 }}], borderColor: '#6366f1', tension: 0.4, fill: false },
+        { label: 'Industry Average %', data: [73,73,73,73,73,73], borderColor: '#ef4444', borderDash: [5,5], tension: 0, fill: false },
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
+  });
+}
+
+function showSection(name, el) {
+  event.preventDefault();
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.add('hidden'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('section-' + name).classList.remove('hidden');
+  el.classList.add('active');
+}
+
+function filterCandidates() {
+  const status = document.getElementById('candStatusFilter').value;
+  const search = document.getElementById('candSearch').value.toLowerCase();
+  document.querySelectorAll('#candTableBody tr').forEach(row => {
+    const matchStatus = !status || row.dataset.status === status;
+    const matchSearch = !search || row.dataset.name.toLowerCase().includes(search) || row.dataset.role.toLowerCase().includes(search);
+    row.style.display = (matchStatus && matchSearch) ? '' : 'none';
+  });
+}
+
+function bulkFollowup() {
+  if (!confirm('Send status update to all pending candidates?')) return;
+  fetch('/api/bulk-followup', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => { showToast(`✅ ${d.message}`); setTimeout(() => location.reload(), 1200); });
+}
+
+function submitAddCand() {
+  const name = document.getElementById('add-cand-name').value.trim();
+  const email = document.getElementById('add-cand-email').value.trim();
+  if (!name || !email) { showToast('Name and email required', 'error'); return; }
+  fetch('/api/candidates', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      name, email,
+      role: document.getElementById('add-cand-role').value,
+      status: document.getElementById('add-cand-status').value,
+      skill_score: document.getElementById('add-cand-skill').value,
+      honesty_score: document.getElementById('add-cand-honesty').value,
+      notes: document.getElementById('add-cand-notes').value,
+    })
+  }).then(r => r.json()).then(d => {
+    if (d.error) { showToast(d.error, 'error'); return; }
+    showToast('Candidate added!');
+    closeModal('addCandModal');
+    setTimeout(() => location.reload(), 800);
+  });
+}
+
+function openEditCand(id, name, email, role, status, skill, honesty, notes) {
+  document.getElementById('edit-cand-id').value = id;
+  document.getElementById('edit-cand-name').value = name;
+  document.getElementById('edit-cand-email').value = email;
+  document.getElementById('edit-cand-role').value = role;
+  document.getElementById('edit-cand-status').value = status;
+  document.getElementById('edit-cand-skill').value = skill;
+  document.getElementById('edit-cand-honesty').value = honesty;
+  document.getElementById('edit-cand-notes').value = notes;
+  openModal('editCandModal');
+}
+
+function submitEditCand() {
+  const id = document.getElementById('edit-cand-id').value;
+  fetch(`/api/candidates/${id}`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      name: document.getElementById('edit-cand-name').value,
+      email: document.getElementById('edit-cand-email').value,
+      role: document.getElementById('edit-cand-role').value,
+      status: document.getElementById('edit-cand-status').value,
+      skill_score: document.getElementById('edit-cand-skill').value,
+      honesty_score: document.getElementById('edit-cand-honesty').value,
+      notes: document.getElementById('edit-cand-notes').value,
+    })
+  }).then(r => r.json()).then(() => {
+    showToast('Updated!');
+    closeModal('editCandModal');
+    setTimeout(() => location.reload(), 800);
+  });
+}
+
+function deleteCand(id) {
+  if (!confirm('Remove this candidate?')) return;
+  fetch(`/api/candidates/${id}`, { method: 'DELETE' })
+    .then(() => { showToast('Removed'); setTimeout(() => location.reload(), 600); });
+}
+</script>
+{% endblock %}

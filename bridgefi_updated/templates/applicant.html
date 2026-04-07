@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+{% block title %}Applicant Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h3><i class="fas fa-user-tie"></i> Applicant View</h3>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#overview" class="sidebar-link active" onclick="showSection('overview', this)">
+        <i class="fas fa-home"></i> Overview
+      </a>
+      <a href="#tracker" class="sidebar-link" onclick="showSection('tracker', this)">
+        <i class="fas fa-list-check"></i> Application Tracker
+      </a>
+      <a href="#ghosting" class="sidebar-link" onclick="showSection('ghosting', this)">
+        <i class="fas fa-ghost"></i> Ghosting Predictor
+      </a>
+      <a href="#followup" class="sidebar-link" onclick="showSection('followup', this)">
+        <i class="fas fa-paper-plane"></i> Follow-up Generator
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="/analyzer" class="btn btn-primary btn-sm w100">
+        <i class="fas fa-magic"></i> Skill Gap AI
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Panel -->
+  <div class="dashboard-main">
+
+    <!-- Overview Section -->
+    <section id="section-overview" class="dash-section">
+      <div class="section-topbar">
+        <div>
+          <h2>Welcome Back 👋</h2>
+          <p class="text-muted">Here's your job search at a glance.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addAppModal')">
+          <i class="fas fa-plus"></i> Add Application
+        </button>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-icon"><i class="fas fa-file-alt"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ total }}</span>
+            <span class="kpi-label">Total Applications</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-icon"><i class="fas fa-hourglass-half"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ active }}</span>
+            <span class="kpi-label">Active / In Progress</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon"><i class="fas fa-trophy"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ offers }}</span>
+            <span class="kpi-label">Offers Received</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-red">
+          <div class="kpi-icon"><i class="fas fa-ghost"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ ghosted }}</span>
+            <span class="kpi-label">Ghosted</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-num">{{ avg_risk }}%</span>
+            <span class="kpi-label">Avg Ghosting Risk</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Row -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <h4>Application Status Breakdown</h4>
+          <canvas id="statusChart" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Quick Tips 💡</h4>
+          <div class="tips-list">
+            <div class="tip-item tip-blue">
+              <i class="fas fa-calendar-alt"></i>
+              <div><strong>Apply on Tuesday</strong> for ~2× response rate vs Friday.</div>
+            </div>
+            <div class="tip-item tip-orange">
+              <i class="fas fa-clock"></i>
+              <div><strong>Follow up after 10 days</strong> if ghosting risk &gt; 70%.</div>
+            </div>
+            <div class="tip-item tip-green">
+              <i class="fas fa-magic"></i>
+              <div><strong>Build an artifact</strong> to stand out — recruiters screen in 30 sec.</div>
+            </div>
+            <div class="tip-item tip-purple">
+              <i class="fas fa-search"></i>
+              <div><strong>Read the hidden JD</strong> — BridgeFi extracts 10+ unstated requirements.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Application Tracker Section -->
+    <section id="section-tracker" class="dash-section hidden">
+      <div class="section-topbar">
+        <div>
+          <h2>Application Tracker</h2>
+          <p class="text-muted">Track every application, status, and ghosting risk.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addAppModal')">
+          <i class="fas fa-plus"></i> Add Application
+        </button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <select id="statusFilter" onchange="filterApps()" class="filter-select">
+          <option value="">All Status</option>
+          <option value="Applied">Applied</option>
+          <option value="Interview">Interview</option>
+          <option value="Offer">Offer</option>
+          <option value="Ghosted">Ghosted</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="Search company or role..." onkeyup="filterApps()" class="filter-input"/>
+      </div>
+
+      <!-- Applications Table -->
+      <div class="table-wrapper">
+        <table class="data-table" id="appsTable">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Applied</th>
+              <th>Ghost Risk</th>
+              <th>Follow-up</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="appsTableBody">
+            {% for app in applications %}
+            <tr data-status="{{ app.status }}" data-company="{{ app.company }}" data-role="{{ app.role }}" data-id="{{ app.id }}">
+              <td>
+                <strong>{{ app.company }}</strong>
+                {% if app.job_url %}<a href="{{ app.job_url }}" target="_blank" class="link-icon"><i class="fas fa-external-link-alt"></i></a>{% endif %}
+              </td>
+              <td>{{ app.role }}</td>
+              <td><span class="status-badge status-{{ app.status.lower().replace(' ', '-') }}">{{ app.status }}</span></td>
+              <td>{{ app.applied_date.strftime('%b %d, %Y') }}</td>
+              <td>
+                <div class="risk-bar-wrap">
+                  <div class="risk-bar" style="width:{{ (app.ghosting_risk * 100)|int }}%; background:{{ '#ef4444' if app.ghosting_risk > 0.65 else '#f59e0b' if app.ghosting_risk > 0.35 else '#10b981' }}"></div>
+                  <span class="risk-label {{ 'risk-high' if app.ghosting_risk > 0.65 else 'risk-med' if app.ghosting_risk > 0.35 else 'risk-low' }}">{{ (app.ghosting_risk * 100)|int }}%</span>
+                </div>
+              </td>
+              <td>
+                {% if app.follow_up_sent %}
+                  <span class="badge-sent"><i class="fas fa-check"></i> Sent</span>
+                {% else %}
+                  <button class="btn-icon btn-followup" onclick="generateFollowup({{ app.id }}, '{{ app.company }}', '{{ app.role }}', '{{ app.applied_date.strftime('%B %d, %Y') }}')" title="Generate Follow-up">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                {% endif %}
+              </td>
+              <td>
+                <div class="action-group">
+                  <button class="btn-icon btn-edit" onclick="openEditApp({{ app.id }}, '{{ app.company }}', '{{ app.role }}', '{{ app.department }}', '{{ app.status }}', '{{ app.notes }}')" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon btn-delete" onclick="deleteApp({{ app.id }})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Ghosting Predictor Section -->
+    <section id="section-ghosting" class="dash-section hidden">
+      <div class="section-topbar">
+        <div>
+          <h2>Ghosting Prediction Engine</h2>
+          <p class="text-muted">Know your ghosting risk before you apply.</p>
+        </div>
+      </div>
+
+      <div class="two-col-grid">
+        <div class="card">
+          <h4><i class="fas fa-sliders-h"></i> Predict Ghosting Risk</h4>
+          <div class="form-group">
+            <label>Company Name</label>
+            <input type="text" id="gp-company" class="form-input" placeholder="e.g. Google, Startup XYZ" />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <input type="text" id="gp-role" class="form-input" placeholder="e.g. Software Engineer" />
+          </div>
+          <div class="form-group">
+            <label>Department</label>
+            <select id="gp-dept" class="form-input">
+              <option value="engineering">Engineering</option>
+              <option value="product">Product</option>
+              <option value="data">Data / Analytics</option>
+              <option value="ai">AI / ML</option>
+              <option value="design">Design</option>
+              <option value="marketing">Marketing</option>
+              <option value="sales">Sales</option>
+              <option value="hr">HR</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Days Since Applied</label>
+            <input type="number" id="gp-days" class="form-input" placeholder="e.g. 10" min="0" value="7" />
+          </div>
+          <button class="btn btn-primary w100" onclick="predictGhosting()">
+            <i class="fas fa-ghost"></i> Predict Risk
+          </button>
+        </div>
+
+        <div class="card" id="ghost-result-card">
+          <h4><i class="fas fa-chart-pie"></i> Risk Analysis</h4>
+          <div id="ghost-result-empty" class="empty-state">
+            <i class="fas fa-ghost fa-3x" style="color:#ddd"></i>
+            <p>Fill in the form and click Predict to see your ghosting risk.</p>
+          </div>
+          <div id="ghost-result" class="hidden">
+            <div class="risk-meter-wrap">
+              <div class="risk-meter">
+                <div id="risk-fill" class="risk-fill"></div>
+              </div>
+              <div class="risk-score-label">
+                <span id="risk-pct" class="risk-pct-big"></span>
+                <span id="risk-lvl" class="risk-lvl-badge"></span>
+              </div>
+            </div>
+            <div id="risk-breakdown" class="breakdown-grid"></div>
+            <div id="risk-tip" class="tip-box"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Follow-up Generator Section -->
+    <section id="section-followup" class="dash-section hidden">
+      <div class="section-topbar">
+        <div>
+          <h2>Follow-up Generator</h2>
+          <p class="text-muted">AI drafts the perfect follow-up in seconds.</p>
+        </div>
+      </div>
+      <div class="two-col-grid">
+        <div class="card">
+          <h4><i class="fas fa-cog"></i> Configure Email</h4>
+          <div class="form-group">
+            <label>Company</label>
+            <input type="text" id="fu-company" class="form-input" placeholder="Company name" />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <input type="text" id="fu-role" class="form-input" placeholder="Position you applied for" />
+          </div>
+          <div class="form-group">
+            <label>Applied Date</label>
+            <input type="date" id="fu-date" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>Tone</label>
+            <select id="fu-tone" class="form-input">
+              <option value="professional">Professional</option>
+              <option value="warm and enthusiastic">Warm &amp; Enthusiastic</option>
+              <option value="concise and direct">Concise &amp; Direct</option>
+              <option value="grateful and humble">Grateful &amp; Humble</option>
+            </select>
+          </div>
+          <button class="btn btn-primary w100" id="fu-btn" onclick="generateFollowupCustom()">
+            <i class="fas fa-magic"></i> Generate Follow-up Email
+          </button>
+        </div>
+        <div class="card">
+          <h4><i class="fas fa-envelope"></i> Generated Email</h4>
+          <div id="fu-result-empty" class="empty-state">
+            <i class="fas fa-envelope-open fa-3x" style="color:#ddd"></i>
+            <p>Your AI-generated follow-up email will appear here.</p>
+          </div>
+          <div id="fu-result" class="hidden">
+            <pre id="fu-email-text" class="email-pre"></pre>
+            <button class="btn btn-outline mt-2" onclick="copyEmail()">
+              <i class="fas fa-copy"></i> Copy Email
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- end dashboard-main -->
+</div>
+
+<!-- Add Application Modal -->
+<div id="addAppModal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('addAppModal')"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Add Application</h3>
+      <button class="modal-close" onclick="closeModal('addAppModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company *</label>
+          <input type="text" id="add-company" class="form-input" placeholder="Google, Amazon..." />
+        </div>
+        <div class="form-group">
+          <label>Role *</label>
+          <input type="text" id="add-role" class="form-input" placeholder="Software Engineer..." />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" id="add-dept" class="form-input" placeholder="Engineering" />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="add-status" class="form-input">
+            <option>Applied</option><option>Interview</option>
+            <option>Offer</option><option>Ghosted</option><option>Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Applied Date</label>
+          <input type="date" id="add-date" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Job URL</label>
+          <input type="url" id="add-url" class="form-input" placeholder="https://..." />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="add-notes" class="form-input" rows="3" placeholder="Applied via LinkedIn. Strong match..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('addAppModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddApp()">Add Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Application Modal -->
+<div id="editAppModal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('editAppModal')"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Edit Application</h3>
+      <button class="modal-close" onclick="closeModal('editAppModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id" />
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company</label>
+          <input type="text" id="edit-company" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <input type="text" id="edit-role" class="form-input" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" id="edit-dept" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="edit-status" class="form-input">
+            <option>Applied</option><option>Interview</option>
+            <option>Offer</option><option>Ghosted</option><option>Rejected</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="edit-notes" class="form-input" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('editAppModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditApp()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Follow-up Modal -->
+<div id="followupModal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('followupModal')"></div>
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3><i class="fas fa-paper-plane"></i> Generated Follow-up Email</h3>
+      <button class="modal-close" onclick="closeModal('followupModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <pre id="modal-email-text" class="email-pre"></pre>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="copyModalEmail()"><i class="fas fa-copy"></i> Copy</button>
+      <button class="btn btn-primary" onclick="closeModal('followupModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Status Chart
+const statusData = {{ status_counts | safe }};
+const ctx = document.getElementById('statusChart').getContext('2d');
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: Object.keys(statusData),
+    datasets: [{
+      data: Object.values(statusData),
+      backgroundColor: ['#6366f1','#f59e0b','#10b981','#ef4444','#94a3b8'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'right' } }
+  }
+});
+
+// Dashboard section switching
+function showSection(name, el) {
+  event.preventDefault();
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.add('hidden'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('section-' + name).classList.remove('hidden');
+  el.classList.add('active');
+}
+
+// Filter applications
+function filterApps() {
+  const status = document.getElementById('statusFilter').value;
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#appsTableBody tr').forEach(row => {
+    const matchStatus = !status || row.dataset.status === status;
+    const matchSearch = !search || row.dataset.company.toLowerCase().includes(search) || row.dataset.role.toLowerCase().includes(search);
+    row.style.display = (matchStatus && matchSearch) ? '' : 'none';
+  });
+}
+
+// Add Application
+function submitAddApp() {
+  const company = document.getElementById('add-company').value.trim();
+  const role = document.getElementById('add-role').value.trim();
+  if (!company || !role) { showToast('Company and Role are required', 'error'); return; }
+  const payload = {
+    company, role,
+    department: document.getElementById('add-dept').value.trim() || 'Engineering',
+    status: document.getElementById('add-status').value,
+    applied_date: document.getElementById('add-date').value,
+    job_url: document.getElementById('add-url').value,
+    notes: document.getElementById('add-notes').value,
+  };
+  fetch('/api/applications', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).then(r => r.json()).then(d => {
+    if (d.error) { showToast(d.error, 'error'); return; }
+    showToast('Application added!');
+    closeModal('addAppModal');
+    setTimeout(() => location.reload(), 800);
+  });
+}
+
+// Edit Application
+function openEditApp(id, company, role, dept, status, notes) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-company').value = company;
+  document.getElementById('edit-role').value = role;
+  document.getElementById('edit-dept').value = dept;
+  document.getElementById('edit-status').value = status;
+  document.getElementById('edit-notes').value = notes;
+  openModal('editAppModal');
+}
+
+function submitEditApp() {
+  const id = document.getElementById('edit-id').value;
+  const payload = {
+    company: document.getElementById('edit-company').value,
+    role: document.getElementById('edit-role').value,
+    department: document.getElementById('edit-dept').value,
+    status: document.getElementById('edit-status').value,
+    notes: document.getElementById('edit-notes').value,
+  };
+  fetch(`/api/applications/${id}`, {
+    method: 'PATCH',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).then(r => r.json()).then(d => {
+    showToast('Application updated!');
+    closeModal('editAppModal');
+    setTimeout(() => location.reload(), 800);
+  });
+}
+
+// Delete Application
+function deleteApp(id) {
+  if (!confirm('Delete this application?')) return;
+  fetch(`/api/applications/${id}`, { method: 'DELETE' })
+    .then(() => { showToast('Deleted'); setTimeout(() => location.reload(), 600); });
+}
+
+// Ghosting Prediction
+function predictGhosting() {
+  const payload = {
+    company: document.getElementById('gp-company').value.trim() || 'Unknown',
+    role: document.getElementById('gp-role').value.trim() || 'Engineer',
+    department: document.getElementById('gp-dept').value,
+    days_since_apply: parseInt(document.getElementById('gp-days').value) || 0,
+  };
+  fetch('/api/ghosting-risk', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).then(r => r.json()).then(d => {
+    document.getElementById('ghost-result-empty').classList.add('hidden');
+    document.getElementById('ghost-result').classList.remove('hidden');
+    document.getElementById('risk-fill').style.width = d.score + '%';
+    document.getElementById('risk-fill').style.background = d.color;
+    document.getElementById('risk-pct').textContent = d.score + '%';
+    document.getElementById('risk-pct').style.color = d.color;
+    document.getElementById('risk-lvl').textContent = d.level + ' Risk';
+    document.getElementById('risk-lvl').style.background = d.color + '22';
+    document.getElementById('risk-lvl').style.color = d.color;
+    document.getElementById('risk-breakdown').innerHTML = `
+      <div class="bd-item"><span>Dept Base Risk</span><strong>${d.breakdown.department_base}%</strong></div>
+      <div class="bd-item"><span>Days Factor</span><strong>${d.breakdown.days_factor}%</strong></div>
+      <div class="bd-item"><span>Company Type</span><strong>${d.breakdown.company_factor}</strong></div>
+      <div class="bd-item"><span>Best Apply Day</span><strong>${d.best_day_to_apply}</strong></div>
+    `;
+    document.getElementById('risk-tip').innerHTML = `<i class="fas fa-lightbulb"></i> ${d.tip}`;
+  });
+}
+
+// Follow-up Generator (from tracker)
+function generateFollowup(appId, company, role, date) {
+  showToast('Generating follow-up email...');
+  fetch('/api/generate-followup', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ company, role, applied_date: date, tone: 'professional', app_id: appId })
+  }).then(r => r.json()).then(d => {
+    document.getElementById('modal-email-text').textContent = d.email;
+    openModal('followupModal');
+  });
+}
+
+// Follow-up Generator (custom)
+function generateFollowupCustom() {
+  const btn = document.getElementById('fu-btn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+  btn.disabled = true;
+  fetch('/api/generate-followup', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      company: document.getElementById('fu-company').value || 'the company',
+      role: document.getElementById('fu-role').value || 'the position',
+      applied_date: document.getElementById('fu-date').value || 'recently',
+      tone: document.getElementById('fu-tone').value,
+    })
+  }).then(r => r.json()).then(d => {
+    btn.innerHTML = '<i class="fas fa-magic"></i> Generate Follow-up Email';
+    btn.disabled = false;
+    document.getElementById('fu-result-empty').classList.add('hidden');
+    document.getElementById('fu-result').classList.remove('hidden');
+    document.getElementById('fu-email-text').textContent = d.email;
+  });
+}
+
+function copyEmail() {
+  navigator.clipboard.writeText(document.getElementById('fu-email-text').textContent);
+  showToast('Copied to clipboard!');
+}
+function copyModalEmail() {
+  navigator.clipboard.writeText(document.getElementById('modal-email-text').textContent);
+  showToast('Copied to clipboard!');
+}
+
+// Set today's date as default
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('add-date').value = today;
+  document.getElementById('fu-date').value = today;
+});
+</script>
+{% endblock %}

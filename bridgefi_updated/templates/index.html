@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+{% block title %}BridgeFi — AI Career Intelligence{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-canvas" id="heroCanvas"></div>
+  <div class="hero-bg-mesh"></div>
+  <div class="container hero-inner">
+    <div class="hero-badge-row">
+      <div class="hero-badge">
+        <span class="badge-pulse"></span>
+        PS-11 · CSE / AI · VIT Bhopal
+      </div>
+      <div class="hero-badge hero-badge-live">
+        <span class="badge-pulse badge-pulse-green"></span>
+        Live Platform
+      </div>
+    </div>
+
+    <h1 class="hero-title">
+      Closing the Loop Between<br/>
+      <span class="hero-gradient-text">Applicant Effort</span>
+      <span class="hero-amp">&amp;</span>
+      <span class="hero-gradient-text-2">Recruiter Response</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      A dual-sided intelligence platform for skill-gap bridging,
+      ghosting prevention &amp; personal career analytics.
+    </p>
+    <p class="hero-tagline">"Not another resume parser. Not another tracker. Two sides. One solution."</p>
+
+    <div class="hero-cta">
+      <a href="/applicant" class="btn btn-hero-primary">
+        <i class="fas fa-user-tie"></i> I'm an Applicant
+        <span class="btn-shine"></span>
+      </a>
+      <a href="/recruiter" class="btn btn-hero-outline">
+        <i class="fas fa-users"></i> I'm a Recruiter
+      </a>
+      <a href="/analyzer" class="btn btn-hero-accent">
+        <i class="fas fa-magic"></i> Analyze Skill Gap
+      </a>
+    </div>
+
+    <!-- Trust signals -->
+    <div class="hero-trust">
+      <div class="trust-item"><i class="fas fa-shield-alt"></i> No credit card needed</div>
+      <div class="trust-item"><i class="fas fa-bolt"></i> Setup in 60 seconds</div>
+      <div class="trust-item"><i class="fas fa-brain"></i> Powered by Claude AI</div>
+    </div>
+  </div>
+
+  <!-- Floating cards preview -->
+  <div class="hero-float-cards">
+    <div class="hfc hfc-1 float-anim">
+      <div class="hfc-icon" style="background:#6366f1"><i class="fas fa-ghost"></i></div>
+      <div><div class="hfc-num">73%</div><div class="hfc-label">Ghosting Rate</div></div>
+    </div>
+    <div class="hfc hfc-2 float-anim-2">
+      <div class="hfc-icon" style="background:#10b981"><i class="fas fa-trophy"></i></div>
+      <div><div class="hfc-num">{{ stats.offers }}</div><div class="hfc-label">Offers Secured</div></div>
+    </div>
+    <div class="hfc hfc-3 float-anim-3">
+      <div class="hfc-icon" style="background:#f97316"><i class="fas fa-brain"></i></div>
+      <div><div class="hfc-num">AI</div><div class="hfc-label">Gap Analysis</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STATS BAR ===== -->
+<section class="stats-bar-v2">
+  <div class="container stats-grid-v2">
+    <div class="stat-item-v2">
+      <span class="stat-num-v2 stat-num-counter" data-target="{{ stats.apps }}">0</span>
+      <span class="stat-label-v2">Applications Tracked</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item-v2">
+      <span class="stat-num-v2">73%</span>
+      <span class="stat-label-v2">Applicants Are Ghosted</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item-v2">
+      <span class="stat-num-v2">68%</span>
+      <span class="stat-label-v2">Recruiters Admit Slow Response Hurts Brand</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item-v2">
+      <span class="stat-num-v2 stat-num-counter" data-target="{{ stats.offers }}">0</span>
+      <span class="stat-label-v2">Offers Secured via BridgeFi</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROBLEM ===== -->
+<section class="section problem-section-v2">
+  <div class="container">
+    <div class="section-header-v2">
+      <span class="section-tag-v2">THE PROBLEM</span>
+      <h2>The Broken Loop —<br/><span class="gradient-text">Two Sides, One Failure</span></h2>
+    </div>
+    <div class="problem-grid-v2">
+      <div class="problem-card-v2 problem-red">
+        <div class="pc-glow pc-glow-red"></div>
+        <div class="problem-card-header">
+          <div class="pc-icon-wrap pc-icon-red"><i class="fas fa-user-circle"></i></div>
+          <h3>Applicant Pain</h3>
+        </div>
+        <ul class="problem-list-v2">
+          <li><span class="pli-dot pli-red"></span>Skill gaps trigger silent auto-rejection</li>
+          <li><span class="pli-dot pli-red"></span>Ghosting creates emotional &amp; cognitive drain</li>
+          <li><span class="pli-dot pli-red"></span>No insight into hidden job requirements</li>
+          <li><span class="pli-dot pli-red"></span>Zero feedback loop after each rejection</li>
+        </ul>
+      </div>
+      <div class="problem-card-v2 problem-orange">
+        <div class="pc-glow pc-glow-orange"></div>
+        <div class="problem-card-header">
+          <div class="pc-icon-wrap pc-icon-orange"><i class="fas fa-building"></i></div>
+          <h3>Recruiter Pain</h3>
+        </div>
+        <ul class="problem-list-v2">
+          <li><span class="pli-dot pli-orange"></span>Unverifiable resumes waste screening time</li>
+          <li><span class="pli-dot pli-orange"></span>Slow responses silently damage employer brand</li>
+          <li><span class="pli-dot pli-orange"></span>No signal on candidate learning agility</li>
+          <li><span class="pli-dot pli-orange"></span>Bulk rejections erode candidate trust over time</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SOLUTION / FEATURES ===== -->
+<section class="section features-section-v2">
+  <div class="container">
+    <div class="section-header-v2">
+      <span class="section-tag-v2">SOLUTION</span>
+      <h2>One Platform. Two Views.<br/><span class="gradient-text-cyan-inline">Real Trust.</span></h2>
+      <p class="section-sub-v2">"We don't help one side spam the other. We help both sides win — with data."</p>
+    </div>
+
+    <div class="feat-tabs-v2">
+      <button class="feat-tab-btn active" onclick="switchTab('applicant', this)">
+        <i class="fas fa-user-tie"></i> For Applicants
+      </button>
+      <button class="feat-tab-btn" onclick="switchTab('recruiter', this)">
+        <i class="fas fa-users"></i> For Recruiters
+      </button>
+    </div>
+
+    <div id="tab-applicant" class="feat-tab-content active">
+      <div class="features-grid-v2">
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#6366f1"></div>
+          <div class="feat-icon feat-purple"><i class="fas fa-bolt"></i></div>
+          <h4>Skill-Gap Artifact Generator</h4>
+          <p>Paste a JD → AI extracts missing skills → generates a runnable mini-project in &lt;2 min.</p>
+          <div class="feat-badge feat-badge-purple">AI Powered</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#ef4444"></div>
+          <div class="feat-icon feat-red"><i class="fas fa-ghost"></i></div>
+          <h4>Ghosting Prediction Engine</h4>
+          <p>Predicts ghosting probability using company data, department, timing &amp; community signals.</p>
+          <div class="feat-badge feat-badge-red">ML Model</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#10b981"></div>
+          <div class="feat-icon feat-green"><i class="fas fa-robot"></i></div>
+          <h4>Autonomous Follow-up Agent</h4>
+          <p>Auto-drafts professional follow-up emails when ghosting risk exceeds 70%. One-click approve.</p>
+          <div class="feat-badge feat-badge-green">Automation</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#2563eb"></div>
+          <div class="feat-icon feat-blue"><i class="fas fa-search"></i></div>
+          <h4>Missing Features Extractor</h4>
+          <p>Uncovers 10+ hidden JD signals: implicit seniority, cultural keywords, real tech stack.</p>
+          <div class="feat-badge feat-badge-blue">NLP</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#ec4899"></div>
+          <div class="feat-icon feat-pink"><i class="fas fa-star"></i></div>
+          <h4>Interviewer Reputation Ledger</h4>
+          <p>Community-driven trust scores for recruiters. Know who ghosted 300 candidates last quarter.</p>
+          <div class="feat-badge feat-badge-pink">Community</div>
+        </div>
+        <div class="feat-card feat-card-highlight">
+          <div class="feat-card-glow" style="--gc:#06b6d4"></div>
+          <div class="feat-icon feat-teal"><i class="fas fa-chart-line"></i></div>
+          <h4>Personal Dashboard + Insights</h4>
+          <p>Track every application. Visualize GitHub, LinkedIn &amp; LeetCode gaps in one place.</p>
+          <div class="feat-badge feat-badge-teal">Analytics</div>
+          <a href="/profile-intelligence" class="feat-card-cta">Try it now <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-recruiter" class="feat-tab-content">
+      <div class="features-grid-v2">
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#2563eb"></div>
+          <div class="feat-icon feat-blue"><i class="fas fa-inbox"></i></div>
+          <h4>Verified Artifact Inbox</h4>
+          <p>See runnable mini-projects instead of plain resumes. Screen candidates in 30 sec, not 5 min.</p>
+          <div class="feat-badge feat-badge-blue">5 min → 30 sec</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#ef4444"></div>
+          <div class="feat-icon feat-red"><i class="fas fa-chart-bar"></i></div>
+          <h4>Ghosting Risk Dashboard</h4>
+          <p>Visualize your team's ghosting rate vs industry benchmark. Protect your employer brand.</p>
+          <div class="feat-badge feat-badge-red">Brand Safety</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#10b981"></div>
+          <div class="feat-icon feat-green"><i class="fas fa-paper-plane"></i></div>
+          <h4>One-Click Bulk Follow-up</h4>
+          <p>Send status updates to all pending applicants in 10 seconds instead of 2 hours.</p>
+          <div class="feat-badge feat-badge-green">2hr → 10sec</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-card-glow" style="--gc:#f59e0b"></div>
+          <div class="feat-icon feat-orange"><i class="fas fa-medal"></i></div>
+          <h4>Skill-Gap Honesty Score</h4>
+          <p>Identifies candidates who learned a skill just for this role — high-agility learners.</p>
+          <div class="feat-badge feat-badge-orange">Smart Filter</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section how-section-v2">
+  <div class="container">
+    <div class="section-header-v2">
+      <span class="section-tag-v2">HOW IT WORKS</span>
+      <h2>The <span class="gradient-text">BridgeFi Loop</span></h2>
+    </div>
+    <div class="steps-v2">
+      <div class="step-v2 step-reveal" style="--i:0">
+        <div class="step-circle step-c1">1</div>
+        <div class="step-connector"></div>
+        <div class="step-icon-wrap"><i class="fas fa-paste"></i></div>
+        <h4>Paste JD</h4>
+        <p>Drop a job description URL or raw text</p>
+      </div>
+      <div class="step-arrow-v2"><i class="fas fa-long-arrow-alt-right"></i></div>
+      <div class="step-v2 step-reveal" style="--i:1">
+        <div class="step-circle step-c2">2</div>
+        <div class="step-icon-wrap"><i class="fas fa-brain"></i></div>
+        <h4>AI Extracts Gaps</h4>
+        <p>LLM finds hidden requirements &amp; skill gaps</p>
+      </div>
+      <div class="step-arrow-v2"><i class="fas fa-long-arrow-alt-right"></i></div>
+      <div class="step-v2 step-reveal" style="--i:2">
+        <div class="step-circle step-c3">3</div>
+        <div class="step-icon-wrap"><i class="fas fa-code"></i></div>
+        <h4>Build Artifact</h4>
+        <p>Run mini-project that proves your skills</p>
+      </div>
+      <div class="step-arrow-v2"><i class="fas fa-long-arrow-alt-right"></i></div>
+      <div class="step-v2 step-reveal" style="--i:3">
+        <div class="step-circle step-c4">4</div>
+        <div class="step-icon-wrap"><i class="fas fa-chart-line"></i></div>
+        <h4>Track &amp; Follow Up</h4>
+        <p>Monitor ghosting risk, auto-follow up</p>
+      </div>
+      <div class="step-arrow-v2"><i class="fas fa-long-arrow-alt-right"></i></div>
+      <div class="step-v2 step-reveal" style="--i:4">
+        <div class="step-circle step-c5">5</div>
+        <div class="step-icon-wrap"><i class="fas fa-handshake"></i></div>
+        <h4>Close the Loop</h4>
+        <p>Recruiter gets verified signal. You get a reply.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TECH STACK ===== -->
+<section class="section tech-section-v2">
+  <div class="container">
+    <div class="section-header-v2">
+      <span class="section-tag-v2">TECH STACK</span>
+      <h2>Pure <span class="gradient-text">CSE Architecture</span></h2>
+    </div>
+    <div class="tech-grid-v2">
+      <div class="tech-card"><div class="tech-card-icon" style="background:#3b82f620;color:#3b82f6"><i class="fab fa-python"></i></div><span>Flask / Python</span></div>
+      <div class="tech-card"><div class="tech-card-icon" style="background:#10b98120;color:#10b981"><i class="fas fa-database"></i></div><span>SQLite / SQLAlchemy</span></div>
+      <div class="tech-card"><div class="tech-card-icon" style="background:#6366f120;color:#6366f1"><i class="fas fa-brain"></i></div><span>Claude AI (Anthropic)</span></div>
+      <div class="tech-card"><div class="tech-card-icon" style="background:#f59e0b20;color:#f59e0b"><i class="fas fa-chart-pie"></i></div><span>LightGBM (Ghost Predict)</span></div>
+      <div class="tech-card"><div class="tech-card-icon" style="background:#0f172a20;color:#0f172a"><i class="fab fa-github"></i></div><span>GitHub API</span></div>
+      <div class="tech-card"><div class="tech-card-icon" style="background:#06b6d420;color:#06b6d4"><i class="fas fa-spider"></i></div><span>BeautifulSoup</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section-v2">
+  <div class="cta-bg-orb cta-orb-1"></div>
+  <div class="cta-bg-orb cta-orb-2"></div>
+  <div class="container" style="position:relative;z-index:2;text-align:center">
+    <div class="cta-eyebrow"><i class="fas fa-rocket"></i> Ready to level up?</div>
+    <h2 class="cta-title-v2">Ready to Bridge the Gap?</h2>
+    <p class="cta-sub-v2">Join thousands of applicants who stopped guessing and started winning.</p>
+    <div class="cta-btns">
+      <a href="/applicant" class="btn btn-white btn-lg">
+        <i class="fas fa-rocket"></i> Start Tracking Applications
+      </a>
+      <a href="/analyzer" class="btn btn-outline-white btn-lg">
+        <i class="fas fa-magic"></i> Analyze My Skill Gap
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer-v2">
+  <div class="container footer-v2-inner">
+    <div class="footer-brand-v2">
+      <svg class="brand-logo-svg" width="36" height="36" viewBox="0 0 44 44" fill="none">
+        <rect width="44" height="44" rx="11" fill="url(#fg)"/>
+        <defs><linearGradient id="fg" x1="0" y1="0" x2="44" y2="44"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs>
+        <path d="M9 30 Q22 12 35 30" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="22" cy="15" r="2.5" fill="#a5f3fc"/>
+      </svg>
+      <div>
+        <div class="footer-brand-name">Bridge<span style="color:#6366f1">Fi</span></div>
+        <div class="footer-brand-sub">Trust · Signal · Action · Insight</div>
+      </div>
+    </div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h5>Product</h5>
+        <a href="/applicant">Applicant Dashboard</a>
+        <a href="/recruiter">Recruiter Dashboard</a>
+        <a href="/analyzer">Skill Gap AI</a>
+        <a href="/profile-intelligence">Profile Intelligence</a>
+      </div>
+      <div class="footer-col">
+        <h5>Resources</h5>
+        <a href="#">Documentation</a>
+        <a href="#">API Reference</a>
+        <a href="#">Blog</a>
+      </div>
+      <div class="footer-col">
+        <h5>Team</h5>
+        <p class="footer-team-text">Rishi Raj · Arnab Kumar<br/>Swastik Sinha · Abhilash Singh</p>
+        <p class="footer-team-text" style="margin-top:6px">VIT Bhopal · CSE / AI / Automation</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-v2-bottom">
+    <span>© 2024 BridgeFi · All rights reserved</span>
+    <div class="footer-social">
+      <a href="#"><i class="fab fa-github"></i></a>
+      <a href="#"><i class="fab fa-linkedin"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function switchTab(tab, btn) {
+  document.querySelectorAll('.feat-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.feat-tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+// Counter animation
+function animateCounters() {
+  document.querySelectorAll('.stat-num-counter').forEach(el => {
+    const target = parseInt(el.dataset.target) || 0;
+    let current = 0;
+    const step = Math.max(1, Math.floor(target / 40));
+    const timer = setInterval(() => {
+      current = Math.min(current + step, target);
+      el.textContent = current;
+      if (current >= target) clearInterval(timer);
+    }, 30);
+  });
+}
+
+// Intersection Observer for step reveals
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = 1;
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.2 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  animateCounters();
+  document.querySelectorAll('.step-reveal').forEach((el, i) => {
+    el.style.opacity = 0;
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = `opacity 0.5s ${i * 0.1}s, transform 0.5s ${i * 0.1}s`;
+    observer.observe(el);
+  });
+});
+</script>
+{% endblock %}

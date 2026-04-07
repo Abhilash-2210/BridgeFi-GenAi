@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block title %}Skill Gap AI Analyzer{% endblock %}
+
+{% block content %}
+<div class="analyzer-layout">
+  <div class="analyzer-header">
+    <div class="container">
+      <div class="analyzer-hero">
+        <div class="analyzer-badge">
+          <i class="fas fa-brain"></i> AI-Powered · &lt;2 min
+        </div>
+        <h1>Skill-Gap Artifact Generator</h1>
+        <p>"Other bots read what's written. Ours reads what's <em>missing</em>."</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container analyzer-body">
+    <div class="analyzer-grid">
+      <!-- Input Panel -->
+      <div class="analyzer-input-panel">
+        <div class="card">
+          <h4><i class="fas fa-paste"></i> Paste Job Description</h4>
+          <textarea id="jd-input" class="form-input jd-textarea" rows="10"
+            placeholder="Paste the full job description here...
+
+Example:
+We are looking for a Senior Backend Engineer...
+Requirements:
+- 3+ years Python experience
+- Experience with FastAPI or Django
+- Strong SQL/PostgreSQL skills
+- Docker and Kubernetes exposure..."></textarea>
+        </div>
+
+        <div class="card mt-3">
+          <h4><i class="fas fa-user-check"></i> Your Current Skills (Optional)</h4>
+          <textarea id="skills-input" class="form-input" rows="4"
+            placeholder="List your current skills to get a personalized gap analysis...
+
+Example:
+Python, Flask, MySQL, Git, REST APIs, basic Docker..."></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-lg w100 mt-3" id="analyze-btn" onclick="analyzeJD()">
+          <i class="fas fa-magic"></i> Analyze Skill Gap &amp; Generate Artifact
+        </button>
+
+        <div id="loading-state" class="loading-state hidden">
+          <div class="loading-spinner"></div>
+          <div class="loading-steps">
+            <div class="loading-step active" id="ls-1"><i class="fas fa-search"></i> Extracting required skills...</div>
+            <div class="loading-step" id="ls-2"><i class="fas fa-eye"></i> Reading hidden JD signals...</div>
+            <div class="loading-step" id="ls-3"><i class="fas fa-hammer"></i> Generating skill artifact...</div>
+            <div class="loading-step" id="ls-4"><i class="fas fa-check-circle"></i> Finalizing analysis...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Panel -->
+      <div class="analyzer-results-panel">
+        <div id="results-empty" class="results-empty">
+          <div class="empty-icon">🔍</div>
+          <h3>Your Analysis Will Appear Here</h3>
+          <p>Paste a job description and click Analyze to uncover:</p>
+          <ul class="empty-list">
+            <li><i class="fas fa-check"></i> All required &amp; hidden skills</li>
+            <li><i class="fas fa-check"></i> Your skill match score</li>
+            <li><i class="fas fa-check"></i> A runnable mini-project artifact</li>
+            <li><i class="fas fa-check"></i> Hidden JD signals &amp; culture hints</li>
+            <li><i class="fas fa-check"></i> Best time to apply</li>
+          </ul>
+        </div>
+
+        <div id="results-content" class="hidden">
+
+          <!-- Match Score -->
+          <div class="card result-score-card">
+            <div class="score-header">
+              <div>
+                <h3>Match Analysis</h3>
+                <p class="text-muted">How well do you fit this role?</p>
+              </div>
+              <div class="big-score-wrap">
+                <svg class="score-ring" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f5f9" stroke-width="10"/>
+                  <circle id="score-arc" cx="60" cy="60" r="50" fill="none" stroke="#6366f1" stroke-width="10"
+                    stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round"
+                    transform="rotate(-90 60 60)"/>
+                </svg>
+                <div class="score-text">
+                  <span id="match-pct" class="match-pct">0%</span>
+                  <small>Match</small>
+                </div>
+              </div>
+            </div>
+            <p id="recommendation-text" class="recommendation-text"></p>
+          </div>
+
+          <!-- Required Skills -->
+          <div class="card mt-3">
+            <h4><i class="fas fa-layer-group"></i> Required Skills</h4>
+            <div id="skills-list" class="skills-grid"></div>
+          </div>
+
+          <!-- Hidden Signals -->
+          <div class="card mt-3">
+            <h4><i class="fas fa-eye-slash"></i> Hidden JD Signals
+              <span class="tooltip-badge" title="Things not written in the JD but expected by the employer">?</span>
+            </h4>
+            <div id="hidden-signals-list" class="signals-list"></div>
+          </div>
+
+          <!-- Artifact Project -->
+          <div class="card mt-3 artifact-card">
+            <div class="artifact-header">
+              <div class="artifact-icon"><i class="fas fa-hammer"></i></div>
+              <div>
+                <h4 id="artifact-title">Skill Bridge Artifact</h4>
+                <span id="artifact-time" class="artifact-time"></span>
+              </div>
+            </div>
+            <p id="artifact-desc" class="artifact-desc"></p>
+            <div class="artifact-steps" id="artifact-steps"></div>
+            <div class="artifact-footer">
+              <span class="tip-pill"><i class="fas fa-calendar-alt"></i> Best day to apply: <strong>Tuesday</strong></span>
+              <button class="btn btn-primary btn-sm" onclick="copyArtifact()">
+                <i class="fas fa-copy"></i> Copy Project Plan
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let analysisResult = null;
+
+function analyzeJD() {
+  const jd = document.getElementById('jd-input').value.trim();
+  if (!jd) { showToast('Please paste a job description first', 'error'); return; }
+
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('analyze-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+  document.getElementById('loading-state').classList.remove('hidden');
+  document.getElementById('results-empty').classList.add('hidden');
+  document.getElementById('results-content').classList.add('hidden');
+
+  let step = 0;
+  const steps = ['ls-1','ls-2','ls-3','ls-4'];
+  const interval = setInterval(() => {
+    if (step > 0) document.getElementById(steps[step-1]).classList.remove('active');
+    if (step < steps.length) {
+      document.getElementById(steps[step]).classList.add('active');
+      step++;
+    }
+  }, 700);
+
+  fetch('/api/analyze-jd', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      jd_text: jd,
+      user_skills: document.getElementById('skills-input').value.trim()
+    })
+  }).then(r => r.json()).then(data => {
+    clearInterval(interval);
+    document.getElementById('analyze-btn').disabled = false;
+    document.getElementById('analyze-btn').innerHTML = '<i class="fas fa-magic"></i> Analyze Skill Gap & Generate Artifact';
+    document.getElementById('loading-state').classList.add('hidden');
+    analysisResult = data;
+    renderResults(data);
+  }).catch(err => {
+    clearInterval(interval);
+    document.getElementById('analyze-btn').disabled = false;
+    document.getElementById('analyze-btn').innerHTML = '<i class="fas fa-magic"></i> Analyze Skill Gap & Generate Artifact';
+    document.getElementById('loading-state').classList.add('hidden');
+    showToast('Analysis failed. Please try again.', 'error');
+  });
+}
+
+function renderResults(data) {
+  document.getElementById('results-empty').classList.add('hidden');
+  document.getElementById('results-content').classList.remove('hidden');
+
+  // Match Score
+  const pct = data.match_score || 62;
+  document.getElementById('match-pct').textContent = pct + '%';
+  const circumference = 314;
+  const offset = circumference - (pct / 100 * circumference);
+  const arc = document.getElementById('score-arc');
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = pct >= 70 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+  document.getElementById('recommendation-text').textContent = data.recommendation || '';
+
+  // Skills
+  const skillsHTML = (data.required_skills || []).map(s => `
+    <div class="skill-chip priority-${s.priority.toLowerCase()}">
+      <div class="skill-chip-top">
+        <strong>${s.skill}</strong>
+        <span class="priority-tag">${s.priority}</span>
+      </div>
+      <small>${s.your_level || 'Check your profile'}</small>
+    </div>
+  `).join('');
+  document.getElementById('skills-list').innerHTML = skillsHTML;
+
+  // Hidden Signals
+  const signalsHTML = (data.hidden_signals || []).map((s, i) => `
+    <div class="signal-item">
+      <div class="signal-num">${i+1}</div>
+      <p>${s}</p>
+    </div>
+  `).join('');
+  document.getElementById('hidden-signals-list').innerHTML = signalsHTML;
+
+  // Artifact
+  const artifact = data.artifact_project || {};
+  document.getElementById('artifact-title').textContent = artifact.title || 'Skill Bridge Artifact';
+  document.getElementById('artifact-time').textContent = '⏱ ' + (artifact.estimated_time || '90 minutes');
+  document.getElementById('artifact-desc').textContent = artifact.description || '';
+  const stepsHTML = (artifact.steps || []).map((step, i) => `
+    <div class="art-step"><span class="art-step-num">${i+1}</span><span>${step}</span></div>
+  `).join('');
+  document.getElementById('artifact-steps').innerHTML = stepsHTML;
+}
+
+function copyArtifact() {
+  if (!analysisResult) return;
+  const a = analysisResult.artifact_project || {};
+  const text = `${a.title}\n${a.description}\n\nSteps:\n${(a.steps||[]).map((s,i) => `${i+1}. ${s}`).join('\n')}`;
+  navigator.clipboard.writeText(text);
+  showToast('Project plan copied!');
+}
+</script>
+{% endblock %}
