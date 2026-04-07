@@ -1,4 +1,4 @@
-# 🌉 BridgeFi
+# BridgeFi
 
 > **Closing the Loop Between Applicant Effort & Recruiter Response**
 
